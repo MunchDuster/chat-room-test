@@ -1,0 +1,68 @@
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<div>
+		<div><sub id="Name info"></sub></div>
+		Name: <input type="text" id="nameBox" ><br>
+		<div><sub id="Pass info"></sub></div>
+		Password: <input type="password" id="passBox" ><br>
+		Room: <input type="text" id="roomBox" ><br>
+		Room Password: <input type="password" id="roomPassBox" ><br>
+		<input type="button" id="join" value="Go" onclick="onSubmit();"><br>
+	</div>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		var socket = io();
+		socket.emit('page type',"join");
+
+		var hasFoundRoom = false;
+		var username; var userpass;
+		var roomname; var roompass;
+		var ID;
+		function onSubmit(){
+			username = document.getElementById("nameBox").value;
+			roomname = document.getElementById("roomBox").value;
+			ID = document.getElementById("nameBox").value;
+			roompass = document.getElementById("roomPassBox").value;
+			userpass = document.getElementById("passBox").value;
+			console.log("Sending results...");
+			socket.emit('submit form',username,roomname,roompass,userpass);
+		}
+		var infoCount = [];
+		var infoIndex = [];
+		function getIndex(arr,obj){
+			for(var i=0;i<arr.length;i++){
+				if(arr[i] == obj)
+					return i;
+			}
+			return arr.length;
+		}
+		function showInfo(msg , htmlObject){
+			const index = getIndex(infoIndex,htmlObject)
+			const startCount = infoCount[index]++;
+			htmlObject.innerText = msg;
+			setTimeout(3000,function(){
+			if(infoCount[index] == startCount)
+				htmlObject.innerText = "";
+			})
+		}
+		socket.on('form response',function(requestSuccess, userValid,roomValid,userMessage,roomMessage){
+			console.log("Results returned.");
+			window.location = "chat";
+			if(!requestSuccess){
+				if(!userValid){
+					showInfo(userMessage,document.getElementById("Name info"));
+				}else if(!roomValid){
+					alert(roomMessage,document.getElementById("Room info"));
+				}else{
+					console.log("Error: form fail, unknown cause.");
+				}
+			}else{
+				window.location = "index.html";
+			}
+		});
+	</script>
+</body>
+</html>
